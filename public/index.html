@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>BLU Auto Lite</title>
+  <link rel="stylesheet" href="assets/styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div>
+        <div class="brand">BLU Auto Lite</div>
+        <p class="sub">Scripts sem Meetime, sem login e sem banco de dados de usuario.</p>
+      </div>
+      <div class="nav">
+        <button class="active" data-tab="scripts">Scripts</button>
+        <button data-tab="settings">⚙ Configurações</button>
+        <button id="reopenOnboardingBtn" type="button">Tour inicial</button>
+      </div>
+      <p class="sub">A chave de IA fica salva apenas neste navegador. O servidor recebe a chave somente durante o processamento.</p>
+    </aside>
+
+    <main class="main">
+      <section id="tabScripts">
+        <div class="topbar">
+          <div>
+            <h1>Processar planilha</h1>
+            <p class="sub">Escolha um script, envie a planilha e baixe o resultado.</p>
+          </div>
+          <button class="btn btn-ghost" id="openSettingsBtn">⚙ IA</button>
+        </div>
+
+        <div class="grid" style="margin-top:18px;">
+          <form class="card form" id="processForm">
+            <div class="field">
+              <label>Script</label>
+              <select id="action">
+                <option value="dz">Dono do Zap — validar telefones</option>
+                <option value="style">Formatar planilha</option>
+                <option value="enrich">Avaliar ICP com IA</option>
+                <option value="company_age_mei">Validar tempo de existência / MEI</option>
+                <option value="uni">Unificar empresas + sócios</option>
+              </select>
+            </div>
+
+            <div id="singleFileBlock">
+              <div class="drop" id="drop">
+                <input type="file" id="file" accept=".csv,.xlsx,.xls" hidden />
+                <strong>Enviar planilha</strong>
+                <span class="sub" id="fileName">CSV ou XLSX</span>
+              </div>
+              <div id="sheetSelector" style="display:none;margin-top:12px;"></div>
+            </div>
+
+            <div id="unifyBlock" class="hidden form">
+              <div class="field">
+                <label>Planilha de empresas</label>
+                <input type="file" id="companyFile" accept=".csv,.xlsx,.xls" />
+                <div id="companySheets" style="display:none;margin-top:8px;"></div>
+              </div>
+              <div class="field">
+                <label>Planilha de sócios</label>
+                <input type="file" id="partnerFile" accept=".csv,.xlsx,.xls" />
+                <div id="partnerSheets" style="display:none;margin-top:8px;"></div>
+              </div>
+            </div>
+
+            <div class="field hidden" id="icpBlock">
+              <label>Descrição do ICP</label>
+              <textarea id="icpDescription" placeholder="Ex.: indústrias com faturamento acima de 5MM/ano, não MEI, não Simples e pagam ICMS."></textarea>
+            </div>
+
+            <div class="notice" id="aiNotice">
+              IA configurada: <strong id="aiStatus">não</strong>. Se os cabeçalhos não forem compatíveis, a IA será chamada para identificar e corrigir as colunas antes do script rodar.
+            </div>
+
+            <button class="btn btn-primary" id="runBtn" type="submit">Executar</button>
+          </form>
+
+          <section>
+            <div class="card status">
+              <span class="pill" id="pill">aguardando</span>
+              <h2 id="statusTitle" style="margin:12px 0 6px;font-size:20px;color:#fff;">Nenhum processo ativo</h2>
+              <p id="stage" style="color:#9fb2c8;margin-bottom:14px;">Envie uma planilha para começar.</p>
+              <div class="progress"><div id="bar"></div></div>
+              <div id="download" style="display:none;margin-top:14px;"></div>
+            </div>
+            <div class="card" style="margin-top:14px;">
+              <div class="terminal" id="terminal"><span class="info">› aguardando início…</span></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section id="tabSettings" class="hidden">
+        <div class="topbar">
+          <div>
+            <h1>Configurações de IA</h1>
+            <p class="sub">A chave não é salva no servidor. Ela fica no navegador e é enviada apenas junto com a execução.</p>
+          </div>
+        </div>
+        <div class="card form" style="max-width:760px;margin-top:18px;">
+          <div class="row">
+            <div class="field">
+              <label>Provedor</label>
+              <select id="aiProvider">
+                <option value="openai">GPT / OpenAI</option>
+                <option value="anthropic">Claude / Anthropic</option>
+                <option value="mistral">Mistral</option>
+                <option value="gemini">Gemini / Google</option>
+                <option value="deepseek">DeepSeek</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Modelo</label>
+              <select id="aiModel"></select>
+            </div>
+          </div>
+          <div class="field">
+            <label>Token da IA</label>
+            <input id="aiToken" type="password" placeholder="Cole a chave da sua IA" autocomplete="off" />
+          </div>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-primary" id="saveAiBtn" type="button">Salvar neste navegador</button>
+            <button class="btn btn-ghost" id="clearAiBtn" type="button">Apagar chave local</button>
+          </div>
+          <div class="notice">Dono do Zap não exige chave neste painel. Meetime não existe nesta versão.</div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="onboarding-backdrop hidden" id="onboarding">
+    <div class="onboarding-card" role="dialog" aria-modal="true" aria-labelledby="onboardingTitle">
+      <div class="onboarding-media">
+        <h2 id="onboardingTitle">Bem-vindo ao BLU Auto Lite</h2>
+        <p id="onboardingSubtitle">Um painel simples para processar planilhas usando os scripts que não dependem da Meetime.</p>
+      </div>
+      <div class="onboarding-body">
+        <div class="onboarding-progress" id="onboardingDots"></div>
+        <div>
+          <h3 class="onboarding-step-title" id="onboardingStepTitle"></h3>
+          <p class="onboarding-step-text" id="onboardingStepText"></p>
+        </div>
+        <div class="notice" id="onboardingTip"></div>
+        <div class="onboarding-actions">
+          <button class="btn btn-ghost" id="skipOnboardingBtn" type="button">Pular</button>
+          <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <button class="btn btn-ghost" id="prevOnboardingBtn" type="button">Voltar</button>
+            <button class="btn btn-primary" id="nextOnboardingBtn" type="button">Próximo</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="assets/app.js"></script>
+</body>
+</html>

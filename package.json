@@ -1,0 +1,22 @@
+{
+  "name": "blu-auto-lite",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Painel BLU Auto sem Meetime e sem armazenamento de dados de usuario em BD.",
+  "main": "server.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "csv-parse": "^5.6.0",
+    "exceljs": "^4.4.0",
+    "express": "^4.21.2",
+    "jszip": "^3.10.1",
+    "multer": "^2.0.2"
+  }
+}
