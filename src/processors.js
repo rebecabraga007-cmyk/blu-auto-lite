@@ -74,6 +74,18 @@ function firstNameMatches(contactName, names) {
   return names.some((name) => String(name || "").toUpperCase().includes(first));
 }
 
+function isPhoneColumnForZenvia(key) {
+  const n = key.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
+  if (n === "telefone" || n.startsWith("telefone")) return true;
+  if (n === "celular" || n.startsWith("celular")) return true;
+  if (n === "whatsapp") return true;
+  if (n.includes("fone movel") || n.includes("fone cel")) return true;
+  if (n.includes("phone")) return true;
+  if (/^cel\d*$/.test(n)) return true;
+  if (/^tel\d*$/.test(n)) return true;
+  return false;
+}
+
 function phoneColumns(row) {
   const result = [];
   for (const key of Object.keys(row)) {
@@ -190,6 +202,51 @@ function processStyle(rows) {
   return {
     rows,
     logs: ["A formatacao visual e aplicada no arquivo Excel de saida pelo aplicativo leitor. Os dados foram preservados."]
+  };
+}
+
+function processZenvia(rows, _settings = {}, onProgress = () => {}) {
+  const output = [];
+  let changed = 0;
+
+  onProgress({
+    stage: "Formatando para Zenvia",
+    total: rows.length,
+    done: 0,
+    remaining: rows.length,
+    detail: `${rows.length} linhas prontas. Adicionando DDI 55 aos telefones.`
+  });
+
+  for (const [index, row] of rows.entries()) {
+    const next = { ...row };
+    for (const key of Object.keys(next)) {
+      if (!isPhoneColumnForZenvia(key)) continue;
+      const lines = String(next[key] || "").split(/\r?\n/);
+      const formatted = lines.map((line) => {
+        const api = phoneForApi(line);
+        return api || line.trim();
+      }).filter(Boolean);
+      const joined = formatted.join("\n");
+      if (joined !== String(next[key] || "")) changed += 1;
+      next[key] = joined;
+    }
+    output.push(next);
+    onProgress({
+      stage: "Formatando para Zenvia",
+      total: rows.length,
+      done: index + 1,
+      remaining: rows.length - index - 1,
+      detail: `Linha ${index + 1} de ${rows.length} processada.`
+    });
+  }
+
+  return {
+    rows: output,
+    logs: [
+      `${rows.length} linhas processadas.`,
+      `${changed} celulas de telefone atualizadas com DDI 55.`,
+      "Formato de saida: somente digitos com 55 na frente (ex: 5511999991234)."
+    ]
   };
 }
 
@@ -580,4 +637,4 @@ async function processEnrich(rows, icpDescription, settings, onProgress = () => 
   return { rows: output, logs };
 }
 
-module.exports = { processDonoDoZap, processStyle, processUnify, processEnrich, processCompanyAgeMei, phoneMask };
+module.exports = { processDonoDoZap, processStyle, processZenvia, processUnify, processEnrich, processCompanyAgeMei, phoneMask };

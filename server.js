@@ -9,6 +9,7 @@ const { normalizeRowsForAction } = require("./src/columnMapper");
 const {
   processDonoDoZap,
   processStyle,
+  processZenvia,
   processUnify,
   processEnrich,
   processCompanyAgeMei
@@ -33,7 +34,8 @@ const ACTION_PREFIX = {
   style: "FORMATADO_",
   enrich: "ICP_",
   uni: "UNIFICADO_",
-  company_age_mei: "VALIDADO_TEMPO_MEI_"
+  company_age_mei: "VALIDADO_TEMPO_MEI_",
+  zenvia: "ZENVIA_"
 };
 
 const ACTION_LABEL = {
@@ -41,7 +43,8 @@ const ACTION_LABEL = {
   style: "Formatar planilha",
   enrich: "Avaliar ICP",
   uni: "Unificar empresas + socios",
-  company_age_mei: "Validar tempo de existencia/MEI"
+  company_age_mei: "Validar tempo de existencia/MEI",
+  zenvia: "Formatar para Zenvia"
 };
 
 function createJob(id) {
@@ -158,6 +161,11 @@ async function runAction(action, rows, req, settings, jobId, logs) {
   }
   if (action === "company_age_mei") {
     const result = await processCompanyAgeMei(rows, settings, (p) => updateJob(jobId, p));
+    logs.push(...result.logs);
+    return result.rows;
+  }
+  if (action === "zenvia") {
+    const result = processZenvia(rows, settings, (p) => updateJob(jobId, p));
     logs.push(...result.logs);
     return result.rows;
   }
