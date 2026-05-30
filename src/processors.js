@@ -221,10 +221,14 @@ function processZenvia(rows, _settings = {}, onProgress = () => {}) {
     const next = { ...row };
     for (const key of Object.keys(next)) {
       if (!isPhoneColumnForZenvia(key)) continue;
-      const lines = String(next[key] || "").split(/\r?\n/);
-      const formatted = lines.map((line) => {
-        const api = phoneForApi(line);
-        return api || line.trim();
+      const pieces = String(next[key] || "")
+        .split(/\r?\n/)
+        .flatMap((line) => line.split(/[;,/|]/))
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const formatted = pieces.map((piece) => {
+        const api = phoneForApi(piece);
+        return api || piece;
       }).filter(Boolean);
       const joined = formatted.join("\n");
       if (joined !== String(next[key] || "")) changed += 1;
