@@ -114,6 +114,7 @@ async function pollJob(jobId, onJob) {
 function switchTab(tab) {
   $("tabScripts").classList.toggle("hidden", tab !== "scripts");
   $("tabSettings").classList.toggle("hidden", tab !== "settings");
+  $("tabWiki").classList.toggle("hidden", tab !== "wiki");
   document.querySelectorAll(".nav button").forEach((button) => {
     button.classList.toggle("active", button.dataset.tab === tab);
   });
